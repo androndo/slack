@@ -226,22 +226,26 @@ func postJSON(ctx context.Context, client httpClient, endpoint, token string, js
 }
 
 // post a url encoded form.
-func postForm(ctx context.Context, client httpClient, endpoint string, values url.Values, intf interface{}, d Debug) error {
+func postForm(ctx context.Context, client httpClient, endpoint, token string, values url.Values, intf interface{}, d Debug) error {
 	reqBody := strings.NewReader(values.Encode())
 	req, err := http.NewRequest("POST", endpoint, reqBody)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
 	return doPost(ctx, client, req, newJSONParser(intf), d)
 }
 
-func getResource(ctx context.Context, client httpClient, endpoint string, values url.Values, intf interface{}, d Debug) error {
+func getResource(ctx context.Context, client httpClient, endpoint, token string, values url.Values, intf interface{}, d Debug) error {
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
 	req.URL.RawQuery = values.Encode()
 
 	return doPost(ctx, client, req, newJSONParser(intf), d)
@@ -249,7 +253,7 @@ func getResource(ctx context.Context, client httpClient, endpoint string, values
 
 func parseAdminResponse(ctx context.Context, client httpClient, method string, teamName string, values url.Values, intf interface{}, d Debug) error {
 	endpoint := fmt.Sprintf(WEBAPIURLFormat, teamName, method, time.Now().Unix())
-	return postForm(ctx, client, endpoint, values, intf, d)
+	return postForm(ctx, client, endpoint, "", values, intf, d)
 }
 
 func logResponse(resp *http.Response, d Debug) error {
